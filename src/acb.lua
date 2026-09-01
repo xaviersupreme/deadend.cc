@@ -1,6 +1,6 @@
 --- shit probably doesnt even work but ion care
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/Pixeluted/adoniscries/main/Source.lua",true))()
+-- loadstring(game:HttpGet("https://raw.githubusercontent.com/Pixeluted/adoniscries/main/Source.lua",true))()
 
 setthreadidentity(3)
 
