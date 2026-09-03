@@ -2,6 +2,8 @@
 
 setthreadidentity(3)
 
+getgenv().adonisBypass = false
+
 const function notify(text, duration)
     game:GetService("StarterGui"):SetCore("SendNotification", {
         Title = "deadend.cc",
@@ -107,7 +109,11 @@ task.spawn(function()
                 end
             end
         end)
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/xiaomao8090/Adonis-Bypass-Framework/master/AdonisBypass.lua"))()
+        
+        if getgenv().adonisBypass then
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/xiaomao8090/Adonis-Bypass-Framework/master/AdonisBypass.lua"), "adonis bypass")()
+        end
+
         bypassSuccess = true
     end); task.wait(30); task.cancel(thread)
 end)
