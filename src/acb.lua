@@ -1,8 +1,14 @@
 --- shit probably doesnt even work but ion care
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/Pixeluted/adoniscries/main/Source.lua",true))()
-
 setthreadidentity(3)
+
+const function notify(text, duration)
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "deadend.cc",
+        Text = text,
+        Duration = duration
+    })
+end
 
 local oldDestroy; oldDestroy = hookmetamethod(game, "__index", newcclosure(function(self, key)
     if key == "Destroy" or key == "Clear" then
@@ -12,15 +18,31 @@ local oldDestroy; oldDestroy = hookmetamethod(game, "__index", newcclosure(funct
     return oldDestroy(self, key)
 end))
 
+const yieldFunction = (function(...) while true do wait(0xFF) end end)
+
 local checkStackFunction = filtergc("function", { Hash = "801b76891f73d63ec073100922d1d5bde4af00e0ad4d891f096224f94370c40a5bc12f70eacf69530f199d4f000da8d0", IgnoreExecutor = true }, true)
-local newCheckStackFunction = function(...) end
-hookfunction(checkStackFunction, newCheckStackFunction)
+hookfunction(checkStackFunction, yieldFunction)
 
 local detectionProxyFunction = filtergc("function", { Hash = "d8b9e99aeebbc83f5937f0d226b1a14de0d0aaeb516e8b7335d544ab06443178b5c20e360c3e42b9fd21e33bedcff11e", IgnoreExecutor = true }, true)
-local newDetectionProxyFunction = function() return "" end
+local newDetectionProxyFunction = function() while true do wait(0xFF) end return "" end
+local bindableEvent = debug.getupvalue(detectionProxyFunction, 1) -- ReplicatedStorage._sigma :3 (probably)
 hookfunction(detectionProxyFunction, newDetectionProxyFunction)
 
-local bindableEvent = debug.getupvalue(detectionProxyFunction, 1) -- ReplicatedStorage._sigma :3 (probably)
+local memoryFloodFunction = filtergc("function", { Name = "FLOOD_MEMORY", IgnoreExecutor = true }, true)
+local oldTaskSpawn; oldTaskSpawn = hookfunction(task.spawn, function(...)  
+    if checkcaller() then return oldTaskSpawn(...) end
+
+    local args = {...}
+
+    if typeof(args[1]) == "function" and args[1] == memoryFloodFunction then
+        return
+    end
+
+    return oldTaskSpawn(...)
+end)
+
+local metamethodChecksFunction = filtergc("function", { Hash = "98ead62c64aabce7b4d7780be90367a521c3863717110f4251875fe873804bd6e294990723a8be90c4386d2cb33cd855", IgnoreExecutor = true }, true)
+hookfunction(metamethodChecksFunction, yieldFunction)
 
 local infoFunction = debug.info
 local oldInfo; oldInfo = hookfunction(infoFunction, newcclosure(function(level, options)
@@ -60,22 +82,39 @@ local oldProxyCaller; oldProxyCaller = hookmetamethod(game, "__namecall", newccl
     return oldProxyCaller(self, ...)
 end))
 
--- local memoryFlood = filtergc("function", { Name = "FLOOD_MEMORY", IgnoreExecutor = true }, true)
--- local newMemoryFlood = (function(p1) if p1 ~= nil then return uniqueID end end)/
--- local uniqueID = debug.getupvalue(memoryFlood, 1)
--- hookfunction(memoryFlood, newMemoryFlood)
--- print("hooked memoryFlood")
-
-local oldTableCreate; oldTableCreate = hookfunction(table.create, newcclosure(function(size, ...) 
-    if size > 1_000 then return {} end
-    return oldTableCreate(size, ...)
-end))
-
-local oldBufferCreate; oldBufferCreate = hookfunction(buffer.create, newcclosure(function(size) 
-    if size > 10_000 then return oldBufferCreate(0) end
-    return oldBufferCreate(size)
-end))
-
 setthreadidentity(8)
 
-print('acb ran')
+local bypassSuccess = false
+task.spawn(function()
+    local thread = task.spawn(function() 
+        game:GetService("Players").LocalPlayer.PlayerGui.ChildAdded:Connect(function(inst) 
+            local name = tostring(inst.Name)
+
+            if name:lower():find("terminal") then
+                repeat task.wait() inst:Destroy() until not inst
+                return
+            end
+        end)
+        
+        task.spawn(function() 
+            while task.wait(0.5) do -- unoptimized but fuck you
+                for _, func in filtergc("function", {}) do
+                    local s = debug.info(func, "s")
+                    if not tostring(s):lower():find("crash") then continue end
+                    local o; o = hookfunction(func, function(...) 
+                        error()
+                    end)
+                end
+            end
+        end)
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/xiaomao8090/Adonis-Bypass-Framework/master/AdonisBypass.lua"))()
+        bypassSuccess = true
+    end); task.wait(30); task.cancel(thread)
+end)
+
+notify("pwning anticheat hold up", 10)
+repeat wait() until bypassSuccess
+notify("ok done have fun", 5)
+notify("also u might lag in a sec jus wait", 5)
+
+return { bypassSuccess }
